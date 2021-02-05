@@ -4,7 +4,8 @@ from pyppeteer import launch
 from flask import Flask, request, send_file
 
 async def main():
-    browser = await launch(headless=False)
+    args = ['--no-sandbox']
+    browser = await launch(handleSIGINT=False, handleSIGTERM=False, handleSIGHUP=False, args=args)
     page = await browser.newPage()
     await page.goto('https://www.leclerc24.pl/login/')
 
@@ -20,19 +21,6 @@ async def main():
     await login_button.click()
 
     await page.waitForNavigation()
-
-    search_field = await page.J('input[aria-label=Wyszukiwarka]')
-    search_button = await page.J('button[title=Szukaj]')
-
-    await search_field.type('lego')
-    await page.waitFor(1000)
-    await search_button.click()
-
-    await page.waitForNavigation()
-
-    basket_icon = await page.J("button[title='Dodaj do koszyka']")
-    await basket_icon.click()
-    await page.waitFor(1000)
 
     await page.goto('https://www.leclerc24.pl/order/process')
 
@@ -62,18 +50,20 @@ async def main():
 
     await page.waitFor(2000)
 
-    await page.screenshot({'path': 'example.png', 'fullPage': True})
+    await page.screenshot({'path': '/tmp/screenshot.png', 'fullPage': True})
     await browser.close()
 
 def delivery(request):
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     asyncio.get_event_loop().run_until_complete(main())
 
-    f = open("example.png", "r")
-    file = f.read()
+    f = open("/tmp/screenshot.png", "r")
 
-    return send_file(file,
+    return send_file(f,
         attachment_filename = 'terminy.png',
-        as_attachment=True,
+        as_attachment=False,
+        cache_timeout=-1,
         mimetype='image/png')
 
 
