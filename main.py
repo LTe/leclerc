@@ -3,9 +3,12 @@ import os
 from pyppeteer import launch
 from flask import Flask, request, send_file
 
+WAIT_TIME = 500
+HEADLESS = True if os.getenv('HEADLESS') == 'true' else False
+
 async def main():
     args = ['--no-sandbox']
-    browser = await launch(handleSIGINT=False, handleSIGTERM=False, handleSIGHUP=False, args=args)
+    browser = await launch(handleSIGINT=False, handleSIGTERM=False, handleSIGHUP=False, headless=HEADLESS, args=args)
     page = await browser.newPage()
     await page.goto('https://www.leclerc24.pl/login/')
 
@@ -17,7 +20,7 @@ async def main():
 
     await email_field.type(os.environ.get('EMAIL'))
     await password_field.type(os.environ.get('PASSWORD'))
-    await page.waitFor(1000)
+    await page.waitFor(WAIT_TIME)
     await login_button.click()
 
     await page.waitForNavigation()
@@ -25,11 +28,11 @@ async def main():
     await page.goto('https://www.leclerc24.pl/order/process')
 
     next_action_button = await page.J('.client-panel-footer-buttons-right button')
-    await page.waitFor(1000)
+    await page.waitFor(WAIT_TIME)
     await next_action_button.click()
 
     await page.waitForNavigation()
-    await page.waitFor(1000)
+    await page.waitFor(WAIT_TIME)
 
     delivery_type = await page.J('label[for=deliveryType1]')
     await delivery_type.click()
@@ -38,7 +41,7 @@ async def main():
     await next_action_button.click()
 
     await page.waitForNavigation()
-    await page.waitFor(1000)
+    await page.waitFor(WAIT_TIME)
 
     cancel_type = await page.J('label[for=unavailable3]')
     await cancel_type.click()
@@ -48,7 +51,7 @@ async def main():
 
     await page.waitForNavigation()
 
-    await page.waitFor(2000)
+    await page.waitFor(WAIT_TIME * 2)
 
     await page.screenshot({'path': '/tmp/screenshot.png', 'fullPage': True})
     await browser.close()
