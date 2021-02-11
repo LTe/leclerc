@@ -1,4 +1,10 @@
 steps:
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     args: ["./deploy.sh"]
+    env:
+    - 'EMAIL=$_EMAIL'
+    - 'PASSWORD=$_PASSWORD'
+    - 'HEADLESS=$_HEADLESS'
+    - 'PROJECT=$PROJECT_ID'
+    - 'REGION=$_REGION'
     waitFor: ["-"]
